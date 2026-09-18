@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAssessment, calculateResult } from "@/src/lib/seed-data";
 import { persistAttempt } from "@/src/lib/persistence";
+import { sendResultEmail } from "@/src/lib/services";
 import type { ParticipantDetails } from "@/src/lib/types";
 
 function isParticipant(value: unknown): value is ParticipantDetails {
@@ -26,13 +27,15 @@ export async function POST(request: Request) {
     }
 
     const result = calculateResult(assessment, answers);
+    let saved: { mode: "database" | "demo"; attemptId: string; databaseError: boolean };
     try {
-      const saved = await persistAttempt({ assessment, participant: body.participant, answers, result });
-      return NextResponse.json({ ...saved, emailStatus: process.env.RESEND_API_KEY && process.env.REPORT_FROM_EMAIL ? "queued" : "not-configured" });
+      saved = await persistAttempt({ assessment, participant: body.participant, answers, result });
     } catch (error) {
       console.error("Could not persist assessment attempt", error);
-      return NextResponse.json({ mode: "demo", attemptId: `demo-${Date.now()}`, databaseError: true, emailStatus: "not-configured" });
+      saved = { mode: "demo", attemptId: `demo-${Date.now()}`, databaseError: true };
     }
+    const email = await sendResultEmail({ participant: body.participant, assessment, result });
+    return NextResponse.json({ ...saved, emailStatus: email.status });
   } catch {
     return NextResponse.json({ error: "We could not save this attempt. Please try again." }, { status: 400 });
   }
