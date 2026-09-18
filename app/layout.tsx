@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Checkapp — Insight-led assessments",
-  description: "A premium, self-hosted assessment platform for Absolute Mind."
+  title: "Absolute Mind — Personalised check-ins",
+  description: "Thoughtful assessments and personalised next steps from Absolute Mind."
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
