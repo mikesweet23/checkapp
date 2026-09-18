@@ -1,0 +1,216 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Workspace {
+  id          String       @id @default(cuid())
+  name        String
+  slug        String       @unique
+  createdAt   DateTime     @default(now())
+  assessments Assessment[]
+  contacts    Contact[]
+  users       User[]
+}
+
+model User {
+  id          String    @id @default(cuid())
+  workspaceId String
+  email       String    @unique
+  name        String?
+  role        String    @default("OWNER")
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+}
+
+model Assessment {
+  id           String              @id @default(cuid())
+  workspaceId  String
+  slug         String
+  name         String
+  shortName    String
+  tagline      String?
+  description  String?
+  status       String              @default("DRAFT")
+  settings     Json?
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  workspace    Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  sections     AssessmentSection[]
+  questions    Question[]
+  categories   ScoreCategory[]
+  resultBands  ResultBand[]
+  videos       Video[]
+  pdfTemplates PdfReportTemplate[]
+  attempts     AssessmentAttempt[]
+  @@unique([workspaceId, slug])
+}
+
+model AssessmentSection {
+  id           String      @id @default(cuid())
+  assessmentId String
+  title        String
+  description  String?
+  sortOrder    Int         @default(0)
+  assessment   Assessment  @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  questions    Question[]
+}
+
+model ScoreCategory {
+  id           String            @id @default(cuid())
+  assessmentId String
+  name         String
+  description  String?
+  color        String?
+  assessment   Assessment        @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  questions    Question[]
+  scores       AttemptScore[]
+}
+
+model Question {
+  id           String             @id @default(cuid())
+  assessmentId String
+  sectionId    String?
+  categoryId   String?
+  prompt       String
+  helpText     String?
+  type         String             @default("SINGLE_CHOICE")
+  sortOrder    Int                @default(0)
+  assessment   Assessment         @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  section      AssessmentSection? @relation(fields: [sectionId], references: [id], onDelete: SetNull)
+  category     ScoreCategory?     @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  options      AnswerOption[]
+  answers      AttemptAnswer[]
+}
+
+model AnswerOption {
+  id         String          @id @default(cuid())
+  questionId String
+  label      String
+  score      Int             @default(0)
+  metadata   Json?
+  question   Question        @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  answers    AttemptAnswer[]
+}
+
+model ResultBand {
+  id           String         @id @default(cuid())
+  assessmentId String
+  minScore     Int
+  maxScore     Int
+  label        String
+  title        String
+  summary      String?
+  body         String?
+  ctaLabel     String?
+  ctaHref      String?
+  content      ResultContent?
+  assessment   Assessment     @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+}
+
+model ResultContent {
+  id            String     @id @default(cuid())
+  resultBandId  String     @unique
+  videoId       String?
+  pdfTemplateId String?
+  content       Json?
+  resultBand    ResultBand @relation(fields: [resultBandId], references: [id], onDelete: Cascade)
+}
+
+model Video {
+  id           String     @id @default(cuid())
+  assessmentId String
+  title        String
+  provider     String?
+  url          String?
+  description  String?
+  assessment   Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+}
+
+model PdfReportTemplate {
+  id           String     @id @default(cuid())
+  assessmentId String
+  name         String
+  templateKey  String
+  settings     Json?
+  assessment   Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+}
+
+model Contact {
+  id          String              @id @default(cuid())
+  workspaceId String
+  email       String
+  firstName   String?
+  lastName    String?
+  consent     Boolean             @default(false)
+  metadata    Json?
+  workspace   Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  attempts    AssessmentAttempt[]
+  crmLink     CrmLinkage?
+  createdAt   DateTime            @default(now())
+  @@unique([workspaceId, email])
+}
+
+model AssessmentAttempt {
+  id           String          @id @default(cuid())
+  assessmentId String
+  contactId    String?
+  status       String          @default("STARTED")
+  overallScore Int?
+  resultBandId String?
+  startedAt    DateTime        @default(now())
+  completedAt  DateTime?
+  assessment   Assessment      @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  contact      Contact?        @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  answers      AttemptAnswer[]
+  scores       AttemptScore[]
+  emailEvents  EmailEvent[]
+}
+
+model AttemptAnswer {
+  id         String            @id @default(cuid())
+  attemptId  String
+  questionId String
+  optionId   String?
+  value      Json?
+  score      Int?
+  attempt    AssessmentAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question   Question          @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  option     AnswerOption?     @relation(fields: [optionId], references: [id], onDelete: SetNull)
+  @@unique([attemptId, questionId])
+}
+
+model AttemptScore {
+  id         String            @id @default(cuid())
+  attemptId  String
+  categoryId String
+  score      Int
+  attempt    AssessmentAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  category   ScoreCategory     @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  @@unique([attemptId, categoryId])
+}
+
+model EmailEvent {
+  id         String            @id @default(cuid())
+  attemptId  String
+  type       String
+  status     String            @default("PENDING")
+  providerId String?
+  payload    Json?
+  createdAt  DateTime          @default(now())
+  attempt    AssessmentAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+}
+
+model CrmLinkage {
+  id         String   @id @default(cuid())
+  contactId  String   @unique
+  provider   String
+  externalId String
+  metadata   Json?
+  syncedAt   DateTime?
+  contact    Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+}
