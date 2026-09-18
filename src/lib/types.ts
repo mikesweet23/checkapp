@@ -58,3 +58,17 @@ export type AttemptResult = {
   band: ResultBand;
   categoryScores: Record<string, number>;
 };
+
+export type ParticipantDetails = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  consent: boolean;
+};
+
+export type AttemptDelivery = {
+  attemptId: string;
+  mode: "database" | "demo";
+  emailStatus: "queued" | "not-configured";
+  databaseError?: boolean;
+};
