@@ -69,6 +69,6 @@ export type ParticipantDetails = {
 export type AttemptDelivery = {
   attemptId: string;
   mode: "database" | "demo";
-  emailStatus: "queued" | "not-configured";
+  emailStatus: "sent" | "failed" | "not-configured";
   databaseError?: boolean;
 };
