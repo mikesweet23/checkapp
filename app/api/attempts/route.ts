@@ -4,6 +4,8 @@ import { markEmailDelivery, persistAttempt, saveCrmLinkage } from "@/src/lib/per
 import { sendResultEmail, syncContactToCrm } from "@/src/lib/services";
 import type { ParticipantDetails } from "@/src/lib/types";
 
+export const runtime = "nodejs";
+
 function isParticipant(value: unknown): value is ParticipantDetails {
   if (!value || typeof value !== "object") return false;
   const candidate = value as Record<string, unknown>;
