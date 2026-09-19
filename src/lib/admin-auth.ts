@@ -3,8 +3,26 @@ import { redirect } from "next/navigation";
 
 export const ADMIN_COOKIE = "absolute_mind_admin_session";
 
+function configuredAdminEmails() {
+  return Array.from(new Set([
+    process.env.ADMIN_EMAIL,
+    ...(process.env.ADMIN_ADDITIONAL_EMAILS ?? "").split(","),
+    ...(process.env.ADMIN_EMAILS ?? "").split(","),
+  ].map((email) => email?.trim().toLowerCase()).filter(Boolean))) as string[];
+}
+
 export function adminAuthConfigured() {
-  return Boolean(process.env.ADMIN_EMAIL && process.env.ADMIN_PASSWORD && process.env.ADMIN_SESSION_SECRET);
+  return Boolean(configuredAdminEmails().length && process.env.ADMIN_PASSWORD && process.env.ADMIN_SESSION_SECRET);
+}
+
+export function isConfiguredAdminEmail(email: string) {
+  return configuredAdminEmails().includes(email.trim().toLowerCase());
+}
+
+export function authenticateAdmin(email: string, password: string) {
+  return adminAuthConfigured()
+    && isConfiguredAdminEmail(email)
+    && password === process.env.ADMIN_PASSWORD;
 }
 
 function toBase64Url(value: Uint8Array) {
@@ -33,13 +51,13 @@ export async function verifyAdminSession(token?: string) {
   if (!encodedPayload || !signature) return false;
   const payload = new TextDecoder().decode(fromBase64Url(encodedPayload));
   const [email, expiresAt] = payload.split("|");
-  if (!email || email !== process.env.ADMIN_EMAIL || Number(expiresAt) < Date.now()) return false;
+  if (!email || !isConfiguredAdminEmail(email) || Number(expiresAt) < Date.now()) return false;
   const expected = await sign(payload);
   return expected === signature;
 }
 
 export async function requireAdmin() {
-  if (!adminAuthConfigured()) return;
+  if (!adminAuthConfigured()) redirect("/admin/login");
   const cookieStore = await cookies();
   const isValid = await verifyAdminSession(cookieStore.get(ADMIN_COOKIE)?.value);
   if (!isValid) redirect("/admin/login");

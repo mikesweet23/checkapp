@@ -78,13 +78,13 @@ export async function createPdfReport({ participant, assessment, result }: { par
   pageOne.drawRectangle({ x: 0, y: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT, color: colours.paper });
   pageOne.drawRectangle({ x: 0, y: PAGE_HEIGHT - 12, width: PAGE_WIDTH, height: 12, color: colours.orange });
   pageOne.drawImage(logo, { x: MARGIN, y: PAGE_HEIGHT - 72, width: logoWidth, height: logoHeight });
-  pageOne.drawText("PERSONALISED REPORT", { x: MARGIN, y: PAGE_HEIGHT - 116, size: 10, font: bold, color: colours.orange });
+  pageOne.drawText(asciiText(result.band.pdf?.heading ?? "PERSONALISED REPORT"), { x: MARGIN, y: PAGE_HEIGHT - 116, size: 10, font: bold, color: colours.orange });
 
   const title = `${participant.firstName}'s ${assessment.shortName}`;
   let y = PAGE_HEIGHT - 154;
   y = drawWrapped(pageOne, title, MARGIN, y, PAGE_WIDTH - (MARGIN * 2), bold, 29, colours.ink, 34);
   y -= 12;
-  y = drawWrapped(pageOne, "A thoughtful snapshot of the patterns behind your answers, with a clear next step to consider.", MARGIN, y, 360, regular, 13, colours.muted, 19);
+  y = drawWrapped(pageOne, result.band.pdf?.introduction ?? "A thoughtful snapshot of the patterns behind your answers, with a clear next step to consider.", MARGIN, y, 360, regular, 13, colours.muted, 19);
 
   const scoreX = PAGE_WIDTH - MARGIN - 132;
   const scoreY = PAGE_HEIGHT - 242;
@@ -116,7 +116,7 @@ export async function createPdfReport({ participant, assessment, result }: { par
   const calloutY = secondY - 26;
   pageTwo.drawRectangle({ x: MARGIN, y: calloutY - 104, width: PAGE_WIDTH - (MARGIN * 2), height: 104, color: colours.plum });
   pageTwo.drawText("YOUR NEXT STEP", { x: MARGIN + 22, y: calloutY - 28, size: 9, font: bold, color: colours.peach });
-  drawWrapped(pageTwo, result.band.videoDescription, MARGIN + 22, calloutY - 51, PAGE_WIDTH - (MARGIN * 2) - 44, regular, 11, colours.white, 16);
+  drawWrapped(pageTwo, result.band.pdf?.nextStep ?? result.band.videoDescription, MARGIN + 22, calloutY - 51, PAGE_WIDTH - (MARGIN * 2) - 44, regular, 11, colours.white, 16);
 
   const detailY = calloutY - 154;
   pageTwo.drawText("ABOUT THIS CHECK-IN", { x: MARGIN, y: detailY, size: 10, font: bold, color: colours.orange });
@@ -124,7 +124,7 @@ export async function createPdfReport({ participant, assessment, result }: { par
   drawWrapped(pageTwo, detailText, MARGIN, detailY - 28, PAGE_WIDTH - (MARGIN * 2), regular, 11, colours.muted, 17);
   pageTwo.drawRectangle({ x: MARGIN, y: 104, width: PAGE_WIDTH - (MARGIN * 2), height: 76, color: colours.peach });
   pageTwo.drawText("A note from Absolute Mind", { x: MARGIN + 18, y: 157, size: 11, font: bold, color: colours.plum });
-  drawWrapped(pageTwo, "You do not need to wait until things feel unbearable before asking for support. A calm, structured conversation can be a useful place to begin.", MARGIN + 18, 137, PAGE_WIDTH - (MARGIN * 2) - 36, regular, 10, colours.plum, 14);
+  drawWrapped(pageTwo, result.band.pdf?.note ?? "You do not need to wait until things feel unbearable before asking for support. A calm, structured conversation can be a useful place to begin.", MARGIN + 18, 137, PAGE_WIDTH - (MARGIN * 2) - 36, regular, 10, colours.plum, 14);
   drawFooter(pageTwo, 2, regular);
 
   return pdf.save();

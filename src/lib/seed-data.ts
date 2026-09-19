@@ -1,4 +1,4 @@
-import type { Assessment, AttemptResult } from "./types";
+import type { Assessment, AnswerValues, AttemptResult } from "./types";
 
 export const assessments: Assessment[] = [
   {
@@ -58,15 +58,18 @@ export function getAssessment(slug: string) {
   return assessments.find((assessment) => assessment.slug === slug);
 }
 
-export function calculateResult(assessment: Assessment, answers: Record<string, number>): AttemptResult {
-  const maxPossible = assessment.questions.length * 3;
-  const total = Object.values(answers).reduce((sum, value) => sum + value, 0);
+export function calculateResult(assessment: Assessment, answers: AnswerValues): AttemptResult {
+  const maxPossible = assessment.questions.reduce((sum, question) => {
+    const questionMax = Math.max(...question.options.map((option) => option.score), 1);
+    return sum + questionMax;
+  }, 0);
+  const total = assessment.questions.reduce((sum, question) => sum + (typeof answers[question.id] === "number" ? answers[question.id] as number : 0), 0);
   const overall = Math.round((total / maxPossible) * 100);
   const band = assessment.resultBands.find((candidate) => overall >= candidate.minScore && overall <= candidate.maxScore) ?? assessment.resultBands.at(-1)!;
   const categoryScores = Object.fromEntries(assessment.categories.map((category) => {
     const categoryQuestions = assessment.questions.filter((question) => question.categoryId === category.id);
-    const categoryTotal = categoryQuestions.reduce((sum, question) => sum + (answers[question.id] ?? 0), 0);
-    const categoryMax = categoryQuestions.length * 3;
+    const categoryTotal = categoryQuestions.reduce((sum, question) => sum + (typeof answers[question.id] === "number" ? answers[question.id] as number : 0), 0);
+    const categoryMax = categoryQuestions.reduce((sum, question) => sum + Math.max(...question.options.map((option) => option.score), 1), 0);
     return [category.id, categoryMax ? Math.round((categoryTotal / categoryMax) * 100) : 0];
   }));
   return { overall, band, categoryScores };

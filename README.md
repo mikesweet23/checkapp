@@ -8,7 +8,7 @@ Checkapp is a self-hosted, multi-assessment platform for Absolute Mind. It is de
 - Public assessment landing page and one-question-at-a-time flow.
 - Seeded Anxiety Check assessment with four score categories and configurable result bands.
 - Client-side score calculation and personalised results page with category breakdown, video placeholder and CTA.
-- Admin dashboard, assessment list and create-assessment basics screen.
+- Paula/Mike-only admin workspace with assessment builder, result-band PDF copy, contacts and delivery reports.
 - Prisma/Postgres model covering assessments, sections, questions, options, score categories, result bands, videos, PDF templates, contacts, attempts, answers, scores, email events and CRM linkage.
 - Branded two-page PDF reports generated with `pdf-lib` and attached to Resend emails.
 - Contact/result persistence through Prisma, plus an optional `CRM_WEBHOOK_URL` sync hook for the Absolute Mind CRM.
@@ -34,7 +34,7 @@ Useful routes:
 
 ## Data architecture
 
-The first vertical slice uses `src/lib/seed-data.ts` as a deterministic demo store so the interface works without a database. The replaceable production persistence layer is described in `prisma/schema.prisma`; set `DATABASE_URL` from `.env.example` before wiring the repository calls.
+The public and admin flows use the Prisma repository when `DATABASE_URL` is configured, with the original seed data retained as a local fallback. Set `ADMIN_ADDITIONAL_EMAILS` to `mike@mikesweet.co.uk` (alongside the existing `ADMIN_EMAIL`) so Mike can sign in with the configured admin password.
 
 Completed attempts are saved as contacts, scores, answers and email events through Prisma. When `CRM_WEBHOOK_URL` is configured, the same completion is posted to the CRM and the returned external ID is stored in `CrmLinkage`.
 

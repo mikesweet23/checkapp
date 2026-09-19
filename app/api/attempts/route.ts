@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { getAssessment, calculateResult } from "@/src/lib/seed-data";
-import { markEmailDelivery, persistAttempt, saveCrmLinkage } from "@/src/lib/persistence";
+import { calculateResult } from "@/src/lib/seed-data";
+import { getAssessmentForPublic } from "@/src/lib/assessment-repository";
+import { isDatabaseConfigured, markEmailDelivery, persistAttempt, saveCrmLinkage } from "@/src/lib/persistence";
 import { sendResultEmail, syncContactToCrm } from "@/src/lib/services";
 import type { ParticipantDetails } from "@/src/lib/types";
 
@@ -18,13 +19,13 @@ function isParticipant(value: unknown): value is ParticipantDetails {
 export async function POST(request: Request) {
   try {
     const body = await request.json() as { slug?: string; participant?: unknown; answers?: Record<string, unknown> };
-    const assessment = body.slug ? getAssessment(body.slug) : undefined;
+    const assessment = body.slug ? await getAssessmentForPublic(body.slug) : undefined;
     if (!assessment || !isParticipant(body.participant) || !body.answers) {
       return NextResponse.json({ error: "A valid assessment, participant details and consent are required." }, { status: 400 });
     }
 
-    const answers = Object.fromEntries(Object.entries(body.answers).filter(([, value]) => typeof value === "number")) as Record<string, number>;
-    if (assessment.questions.some((question) => answers[question.id] === undefined)) {
+    const answers = Object.fromEntries(Object.entries(body.answers).filter(([, value]) => typeof value === "number" || typeof value === "string")) as Record<string, number | string>;
+    if (assessment.questions.some((question) => question.type !== "TEXT" && typeof answers[question.id] !== "number")) {
       return NextResponse.json({ error: "Please answer every question before submitting." }, { status: 400 });
     }
 
@@ -34,6 +35,7 @@ export async function POST(request: Request) {
       saved = await persistAttempt({ assessment, participant: body.participant, answers, result });
     } catch (error) {
       console.error("Could not persist assessment attempt", error);
+      if (isDatabaseConfigured() || process.env.NODE_ENV === "production") return NextResponse.json({ error: "We could not save your result. Please try again." }, { status: 503 });
       saved = { mode: "demo", attemptId: `demo-${Date.now()}`, databaseError: true };
     }
     const email = await sendResultEmail({ participant: body.participant, assessment, result });

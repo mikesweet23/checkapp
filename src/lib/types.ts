@@ -17,8 +17,17 @@ export type Question = {
   id: string;
   prompt: string;
   helpText?: string;
-  categoryId: string;
+  categoryId?: string;
+  type?: "SINGLE_CHOICE" | "SCALE" | "TEXT";
+  optional?: boolean;
   options: AnswerOption[];
+};
+
+export type PdfContent = {
+  heading?: string;
+  introduction?: string;
+  nextStep?: string;
+  note?: string;
 };
 
 export type ResultBand = {
@@ -33,6 +42,7 @@ export type ResultBand = {
   ctaHref: string;
   videoTitle: string;
   videoDescription: string;
+  pdf?: PdfContent;
 };
 
 export type Assessment = {
@@ -59,6 +69,8 @@ export type AttemptResult = {
   categoryScores: Record<string, number>;
 };
 
+export type AnswerValues = Record<string, number | string>;
+
 export type ParticipantDetails = {
   firstName: string;
   lastName: string;
@@ -73,4 +85,18 @@ export type AttemptDelivery = {
   pdfStatus?: "generated" | "failed";
   crmStatus?: "synced" | "failed" | "not-configured";
   databaseError?: boolean;
+};
+
+export type AssessmentDraft = {
+  id?: string;
+  name: string;
+  shortName: string;
+  slug: string;
+  tagline: string;
+  description: string;
+  completionMinutes: number;
+  status: AssessmentStatus;
+  categories: ScoreCategory[];
+  questions: Question[];
+  resultBands: ResultBand[];
 };

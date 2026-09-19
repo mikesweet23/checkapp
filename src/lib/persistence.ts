@@ -1,4 +1,4 @@
-import type { Assessment, AttemptResult, ParticipantDetails } from "./types";
+import type { AnswerValues, Assessment, AttemptResult, ParticipantDetails } from "./types";
 import { getPrisma } from "./prisma";
 
 const workspaceId = "workspace-absolute-mind";
@@ -33,6 +33,7 @@ function assessmentCreateData(assessment: Assessment) {
         prompt: question.prompt,
         helpText: question.helpText,
         categoryId: question.categoryId,
+        type: question.type === "TEXT" && question.optional ? "TEXT_OPTIONAL" : question.type ?? "SINGLE_CHOICE",
         sortOrder: index,
         options: { create: question.options.map((option) => ({ id: option.id, label: option.label, score: option.score })) },
       })),
@@ -48,6 +49,7 @@ function assessmentCreateData(assessment: Assessment) {
         body: band.body,
         ctaLabel: band.ctaLabel,
         ctaHref: band.ctaHref,
+        content: { create: { content: { videoTitle: band.videoTitle, videoDescription: band.videoDescription, pdf: band.pdf ?? {} } } },
       })),
     },
   };
@@ -56,7 +58,7 @@ function assessmentCreateData(assessment: Assessment) {
 export async function persistAttempt({ assessment, participant, answers, result }: {
   assessment: Assessment;
   participant: ParticipantDetails;
-  answers: Record<string, number>;
+  answers: AnswerValues;
   result: AttemptResult;
 }) {
   if (!isDatabaseConfigured()) {
@@ -100,9 +102,9 @@ export async function persistAttempt({ assessment, participant, answers, result 
       answers: {
         create: assessment.questions.map((question) => ({
           questionId: question.id,
-          optionId: question.options.find((option) => option.score === answers[question.id])?.id,
+          optionId: typeof answers[question.id] === "number" ? question.options.find((option) => option.score === answers[question.id])?.id : undefined,
           value: answers[question.id],
-          score: answers[question.id],
+          score: typeof answers[question.id] === "number" ? answers[question.id] : null,
         })),
       },
       scores: {
