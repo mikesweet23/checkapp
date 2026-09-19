@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import { PDFDocument, PDFFont, PDFPage, StandardFonts, rgb } from "pdf-lib";
 import type { Assessment, AttemptResult, ParticipantDetails } from "./types";
 
@@ -6,13 +8,13 @@ const PAGE_HEIGHT = 841.89;
 const MARGIN = 52;
 
 const colours = {
-  ink: rgb(0.24, 0.17, 0.21),
-  muted: rgb(0.48, 0.39, 0.43),
-  orange: rgb(0.91, 0.39, 0.22),
-  peach: rgb(1, 0.87, 0.79),
-  plum: rgb(0.36, 0.24, 0.30),
-  sage: rgb(0.46, 0.58, 0.47),
-  paper: rgb(1, 0.98, 0.97),
+  ink: rgb(0.27, 0.27, 0.27),
+  muted: rgb(0.40, 0.40, 0.40),
+  orange: rgb(0.945, 0.388, 0.204),
+  peach: rgb(0.992, 0.906, 0.875),
+  plum: rgb(0.27, 0.27, 0.27),
+  sage: rgb(0.929, 0.949, 0.933),
+  paper: rgb(1, 1, 1),
   white: rgb(1, 1, 1),
   line: rgb(0.92, 0.86, 0.83),
 };
@@ -57,12 +59,6 @@ function drawFooter(page: PDFPage, pageNumber: number, regular: PDFFont) {
   page.drawText(`${pageNumber} / 2`, { x: PAGE_WIDTH - MARGIN - 24, y: 25, size: 8, font: regular, color: colours.muted });
 }
 
-function drawBrandMark(page: PDFPage, x: number, y: number, bold: PDFFont) {
-  page.drawCircle({ x, y, size: 18, color: colours.orange });
-  page.drawCircle({ x: x + 11, y: y + 9, size: 8, color: colours.peach });
-  page.drawText("AM", { x: x - 10, y: y - 4, size: 9, font: bold, color: colours.white });
-}
-
 function drawCategoryBar(page: PDFPage, label: string, score: number, colour: string, x: number, y: number, width: number, regular: PDFFont, bold: PDFFont) {
   page.drawText(asciiText(label), { x, y, size: 10, font: regular, color: colours.ink });
   page.drawText(`${score}%`, { x: x + width - 28, y, size: 10, font: bold, color: colours.orange });
@@ -74,11 +70,14 @@ export async function createPdfReport({ participant, assessment, result }: { par
   const pdf = await PDFDocument.create();
   const regular = await pdf.embedFont(StandardFonts.Helvetica);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
+  const logo = await pdf.embedPng(fs.readFileSync(path.join(process.cwd(), "public", "absolute-mind-logo.png")));
+  const logoScale = 0.42;
+  const logoWidth = logo.width * logoScale;
+  const logoHeight = logo.height * logoScale;
   const pageOne = pdf.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
   pageOne.drawRectangle({ x: 0, y: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT, color: colours.paper });
   pageOne.drawRectangle({ x: 0, y: PAGE_HEIGHT - 12, width: PAGE_WIDTH, height: 12, color: colours.orange });
-  drawBrandMark(pageOne, MARGIN + 16, PAGE_HEIGHT - 60, bold);
-  pageOne.drawText("ABSOLUTE MIND", { x: MARGIN + 44, y: PAGE_HEIGHT - 64, size: 11, font: bold, color: colours.plum });
+  pageOne.drawImage(logo, { x: MARGIN, y: PAGE_HEIGHT - 72, width: logoWidth, height: logoHeight });
   pageOne.drawText("PERSONALISED REPORT", { x: MARGIN, y: PAGE_HEIGHT - 116, size: 10, font: bold, color: colours.orange });
 
   const title = `${participant.firstName}'s ${assessment.shortName}`;
@@ -107,8 +106,7 @@ export async function createPdfReport({ participant, assessment, result }: { par
   const pageTwo = pdf.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
   pageTwo.drawRectangle({ x: 0, y: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT, color: colours.paper });
   pageTwo.drawRectangle({ x: 0, y: PAGE_HEIGHT - 12, width: PAGE_WIDTH, height: 12, color: colours.orange });
-  drawBrandMark(pageTwo, MARGIN + 16, PAGE_HEIGHT - 60, bold);
-  pageTwo.drawText("ABSOLUTE MIND", { x: MARGIN + 44, y: PAGE_HEIGHT - 64, size: 11, font: bold, color: colours.plum });
+  pageTwo.drawImage(logo, { x: MARGIN, y: PAGE_HEIGHT - 72, width: logoWidth, height: logoHeight });
   pageTwo.drawText("A CALMER WAY FORWARD", { x: MARGIN, y: PAGE_HEIGHT - 125, size: 10, font: bold, color: colours.orange });
   let secondY = PAGE_HEIGHT - 166;
   secondY = drawWrapped(pageTwo, asciiText(result.band.videoTitle), MARGIN, secondY, PAGE_WIDTH - (MARGIN * 2), bold, 26, colours.ink, 31);

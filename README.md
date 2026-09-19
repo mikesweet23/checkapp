@@ -40,4 +40,4 @@ Completed attempts are saved as contacts, scores, answers and email events throu
 
 ## Deployment
 
-The app uses the Next.js App Router and is structured for Vercel. Add `DATABASE_URL`, `RESEND_API_KEY`, `REPORT_FROM_EMAIL` and the optional `CRM_WEBHOOK_URL` as Vercel environment variables. The report email includes the generated PDF attachment; the external CRM hook is intentionally provider-neutral so it can connect to the existing Absolute Mind CRM without coupling the assessment platform to a vendor SDK.
+The app uses the Next.js App Router and is structured for Vercel. Add `DATABASE_URL`, `RESEND_API_KEY`, `REPORT_FROM_EMAIL` and the optional `CRM_WEBHOOK_URL` / `CRM_WEBHOOK_SECRET` as Vercel environment variables. The report email includes the generated PDF attachment; the external CRM hook is intentionally provider-neutral so it can connect to the existing Absolute Mind CRM without coupling the assessment platform to a vendor SDK.
