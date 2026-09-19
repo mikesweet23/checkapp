@@ -1,18 +1,5 @@
-import Link from "next/link";
-import { SiteHeader } from "@/src/components/site-header";
-import { SiteFooter } from "@/src/components/site-footer";
+import { redirect } from "next/navigation";
 
 export default function Home() {
-  return <main className="site-shell">
-    <SiteHeader />
-    <section className="hero container">
-      <div className="hero-grid">
-        <div><div className="eyebrow">The insight layer for better conversations</div><h1>Turn a simple check-in into a <em>clear next step.</em></h1><p className="hero-copy">Checkapp is a beautiful, self-hosted home for scorecards that help people understand themselves — and help practitioners know how to support them.</p><div className="hero-actions"><Link className="button button-primary" href="/assessments/anxiety-check">Try the live assessment <span>→</span></Link><Link className="button button-ghost" href="/admin">Explore the workspace <span>↗</span></Link></div></div>
-        <div className="hero-card-wrap"><div className="hero-card"><div className="hero-card-head"><div><div className="eyebrow">Live scorecard</div><h3>Understand Your Anxious Mind</h3><span className="card-mini"><span className="status-dot" />186 completed this month</span></div><span className="tag">LIVE</span></div><div className="score-ring"><div className="score-ring-text"><strong>72</strong><span>out of 100</span></div></div><div className="metric-list"><div className="metric"><div className="metric-label">Thought patterns <span>74%</span><div className="metric-bar"><div className="metric-fill" style={{ width: "74%" }} /></div></div><div className="metric-score">01</div></div><div className="metric"><div className="metric-label">Body & energy <span>62%</span><div className="metric-bar"><div className="metric-fill" style={{ width: "62%" }} /></div></div><div className="metric-score">02</div></div><div className="metric"><div className="metric-label">Self-trust <span>48%</span><div className="metric-bar"><div className="metric-fill" style={{ width: "48%" }} /></div></div><div className="metric-score">03</div></div></div></div><div className="floating-note"><strong>Personalised result</strong><span className="muted">Band, video & next step</span></div></div>
-      </div>
-    </section>
-    <section className="section" id="how-it-works"><div className="container"><div className="section-heading"><div><div className="eyebrow">Built for momentum</div><h2>From first answer<br />to better action.</h2></div><p className="muted" style={{ maxWidth: 300, fontSize: 13, lineHeight: 1.6 }}>A reusable platform for the scorecards you want to own, evolve and make part of your practice.</p></div><div className="feature-grid"><div className="feature-card"><div className="feature-number">01</div><h3>Ask the right questions</h3><p>Guide people through a calm, one-question-at-a-time experience that feels more like a conversation than a form.</p></div><div className="feature-card"><div className="feature-number">02</div><h3>Reveal a useful pattern</h3><p>Score overall wellbeing and meaningful categories, with result bands you can shape for each assessment.</p></div><div className="feature-card"><div className="feature-number">03</div><h3>Offer the next best step</h3><p>Connect every result to thoughtful content, a video, a report and a clear invitation to continue the conversation.</p></div></div></div></section>
-    <section className="section dark-band" id="why-checkapp"><div className="container"><div className="eyebrow">A quieter kind of platform</div><p className="quote">“The assessment should feel like the beginning of a helpful conversation — not the end of a marketing funnel.”</p></div></section>
-    <SiteFooter />
-  </main>;
+  redirect("/admin");
 }
