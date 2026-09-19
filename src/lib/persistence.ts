@@ -121,6 +121,23 @@ export async function persistAttempt({ assessment, participant, answers, result 
   return {
     mode: "database" as const,
     attemptId: attempt.id,
+    contactId: contact.id,
     databaseError: false,
   };
+}
+
+export async function markEmailDelivery({ attemptId, status, providerId }: { attemptId: string; status: "SENT" | "FAILED"; providerId?: string }) {
+  if (!isDatabaseConfigured() || attemptId.startsWith("demo-")) return;
+  const prisma = getPrisma();
+  await prisma.emailEvent.updateMany?.({ where: { attemptId, type: "REPORT_EMAIL" }, data: { status, providerId } });
+}
+
+export async function saveCrmLinkage({ contactId, provider, externalId, metadata }: { contactId: string; provider: string; externalId: string; metadata?: object }) {
+  if (!isDatabaseConfigured()) return;
+  const prisma = getPrisma();
+  await prisma.crmLinkage.upsert({
+    where: { contactId },
+    update: { provider, externalId, metadata, syncedAt: new Date() },
+    create: { contactId, provider, externalId, metadata, syncedAt: new Date() },
+  });
 }

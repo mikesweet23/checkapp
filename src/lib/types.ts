@@ -70,5 +70,7 @@ export type AttemptDelivery = {
   attemptId: string;
   mode: "database" | "demo";
   emailStatus: "sent" | "failed" | "not-configured";
+  pdfStatus?: "generated" | "failed";
+  crmStatus?: "synced" | "failed" | "not-configured";
   databaseError?: boolean;
 };

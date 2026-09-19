@@ -2,12 +2,15 @@ type PrismaRecord = { id: string };
 type PrismaModel = {
   upsert(args: object): Promise<PrismaRecord>;
   create(args: object): Promise<PrismaRecord>;
+  updateMany?(args: object): Promise<PrismaRecord>;
 };
 type PrismaClientLike = {
   workspace: PrismaModel;
   assessment: PrismaModel;
   contact: PrismaModel;
   assessmentAttempt: PrismaModel;
+  emailEvent: PrismaModel;
+  crmLinkage: PrismaModel;
 };
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClientLike };

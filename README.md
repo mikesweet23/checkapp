@@ -10,7 +10,8 @@ Checkapp is a self-hosted, multi-assessment platform for Absolute Mind. It is de
 - Client-side score calculation and personalised results page with category breakdown, video placeholder and CTA.
 - Admin dashboard, assessment list and create-assessment basics screen.
 - Prisma/Postgres model covering assessments, sections, questions, options, score categories, result bands, videos, PDF templates, contacts, attempts, answers, scores, email events and CRM linkage.
-- Service seams for PDF generation, email delivery and CRM sync in `src/lib/services.ts`.
+- Branded two-page PDF reports generated with `pdf-lib` and attached to Resend emails.
+- Contact/result persistence through Prisma, plus an optional `CRM_WEBHOOK_URL` sync hook for the Absolute Mind CRM.
 
 ## Run locally
 
@@ -35,8 +36,8 @@ Useful routes:
 
 The first vertical slice uses `src/lib/seed-data.ts` as a deterministic demo store so the interface works without a database. The replaceable production persistence layer is described in `prisma/schema.prisma`; set `DATABASE_URL` from `.env.example` before wiring the repository calls.
 
-The intended next increment is to add authenticated admin actions and API routes that map to the Prisma models, then connect the service seams to a PDF renderer, transactional email provider and the chosen CRM.
+Completed attempts are saved as contacts, scores, answers and email events through Prisma. When `CRM_WEBHOOK_URL` is configured, the same completion is posted to the CRM and the returned external ID is stored in `CrmLinkage`.
 
 ## Deployment
 
-The app uses the Next.js App Router and is structured for Vercel. Add `DATABASE_URL` and integration secrets as Vercel environment variables when the database and external services are connected.
+The app uses the Next.js App Router and is structured for Vercel. Add `DATABASE_URL`, `RESEND_API_KEY`, `REPORT_FROM_EMAIL` and the optional `CRM_WEBHOOK_URL` as Vercel environment variables. The report email includes the generated PDF attachment; the external CRM hook is intentionally provider-neutral so it can connect to the existing Absolute Mind CRM without coupling the assessment platform to a vendor SDK.

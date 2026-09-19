@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAssessment, calculateResult } from "@/src/lib/seed-data";
-import { persistAttempt } from "@/src/lib/persistence";
-import { sendResultEmail } from "@/src/lib/services";
+import { markEmailDelivery, persistAttempt, saveCrmLinkage } from "@/src/lib/persistence";
+import { sendResultEmail, syncContactToCrm } from "@/src/lib/services";
 import type { ParticipantDetails } from "@/src/lib/types";
 
 function isParticipant(value: unknown): value is ParticipantDetails {
@@ -27,7 +27,7 @@ export async function POST(request: Request) {
     }
 
     const result = calculateResult(assessment, answers);
-    let saved: { mode: "database" | "demo"; attemptId: string; databaseError: boolean };
+    let saved: { mode: "database" | "demo"; attemptId: string; contactId?: string; databaseError: boolean };
     try {
       saved = await persistAttempt({ assessment, participant: body.participant, answers, result });
     } catch (error) {
@@ -35,7 +35,20 @@ export async function POST(request: Request) {
       saved = { mode: "demo", attemptId: `demo-${Date.now()}`, databaseError: true };
     }
     const email = await sendResultEmail({ participant: body.participant, assessment, result });
-    return NextResponse.json({ ...saved, emailStatus: email.status });
+    try {
+      await markEmailDelivery({ attemptId: saved.attemptId, status: email.status === "sent" ? "SENT" : "FAILED", providerId: email.providerId });
+    } catch (error) {
+      console.error("Could not update email event", error);
+    }
+    const crm = await syncContactToCrm({ contactId: saved.contactId, attemptId: saved.attemptId, participant: body.participant, assessment, result });
+    if (crm.status === "synced" && crm.externalId && saved.contactId) {
+      try {
+        await saveCrmLinkage({ contactId: saved.contactId, provider: "webhook", externalId: crm.externalId, metadata: { assessmentSlug: assessment.slug } });
+      } catch (error) {
+        console.error("Could not save CRM linkage", error);
+      }
+    }
+    return NextResponse.json({ ...saved, emailStatus: email.status, pdfStatus: email.pdfStatus, crmStatus: crm.status });
   } catch {
     return NextResponse.json({ error: "We could not save this attempt. Please try again." }, { status: 400 });
   }
