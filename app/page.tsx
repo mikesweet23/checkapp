@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SiteHeader } from "@/src/components/site-header";
+import { SiteFooter } from "@/src/components/site-footer";
 
 export default function Home() {
   return <main className="site-shell">
@@ -12,6 +13,6 @@ export default function Home() {
     </section>
     <section className="section" id="how-it-works"><div className="container"><div className="section-heading"><div><div className="eyebrow">Built for momentum</div><h2>From first answer<br />to better action.</h2></div><p className="muted" style={{ maxWidth: 300, fontSize: 13, lineHeight: 1.6 }}>A reusable platform for the scorecards you want to own, evolve and make part of your practice.</p></div><div className="feature-grid"><div className="feature-card"><div className="feature-number">01</div><h3>Ask the right questions</h3><p>Guide people through a calm, one-question-at-a-time experience that feels more like a conversation than a form.</p></div><div className="feature-card"><div className="feature-number">02</div><h3>Reveal a useful pattern</h3><p>Score overall wellbeing and meaningful categories, with result bands you can shape for each assessment.</p></div><div className="feature-card"><div className="feature-number">03</div><h3>Offer the next best step</h3><p>Connect every result to thoughtful content, a video, a report and a clear invitation to continue the conversation.</p></div></div></div></section>
     <section className="section dark-band" id="why-checkapp"><div className="container"><div className="eyebrow">A quieter kind of platform</div><p className="quote">“The assessment should feel like the beginning of a helpful conversation — not the end of a marketing funnel.”</p></div></section>
-    <footer className="container" style={{ padding: "28px 0", color: "var(--muted)", fontSize: 11 }}>© 2026 Absolute Mind · Built with care by Mike & Paula</footer>
+    <SiteFooter />
   </main>;
 }
