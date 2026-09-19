@@ -30,8 +30,9 @@ button { cursor: pointer; }
 .topbar { align-items: center; display: flex; justify-content: space-between; padding: 26px 0; }
 .brand { align-items: center; display: inline-flex; gap: 10px; font-size: 18px; font-weight: 700; letter-spacing: -.04em; }
 .brand-sub { color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: .01em; margin-left: -5px; }
-.brand-mark { align-items: center; background: var(--orange); border-radius: 12px 12px 12px 3px; color: white; display: inline-flex; font-size: 13px; height: 31px; justify-content: center; transform: rotate(-8deg); width: 31px; }
-.brand-mark span { transform: rotate(8deg); }
+.brand-mark { align-items: center; background: var(--orange); border-radius: 12px 12px 12px 3px; color: white; display: inline-flex; flex: 0 0 31px; height: 31px; justify-content: center; transform: rotate(-8deg); width: 31px; }
+.brand-mark svg { display: block; height: 22px; transform: rotate(8deg); width: 22px; }
+.brand-mark svg path { fill: none; stroke: #fffaf5; stroke-linecap: round; stroke-width: 1.8; }
 .topbar nav { align-items: center; display: flex; gap: 28px; font-size: 13px; font-weight: 600; }
 .topbar nav a { color: var(--muted); }
 .topbar nav a:hover { color: var(--ink); }
@@ -85,6 +86,12 @@ button { cursor: pointer; }
 .dark-band .eyebrow { color: var(--peach); }
 .dark-band .muted { color: #dccccc; }
 .quote { font-family: "Playfair Display", serif; font-size: 27px; line-height: 1.35; margin: 0; max-width: 650px; }
+
+.site-footer { border-top: 1px solid var(--line); padding: 27px 0; }
+.site-footer-inner { align-items: center; display: flex; justify-content: space-between; }
+.site-footer-brand { font-size: 15px; }
+.site-footer-copy { align-items: center; color: var(--muted); display: flex; font-size: 11px; gap: 18px; }
+.site-footer-copy a { color: var(--orange-dark); font-weight: 700; }
 
 /* Admin */
 .admin-shell { display: flex; min-height: 100vh; }
@@ -236,12 +243,16 @@ button { cursor: pointer; }
 .category-score > div { display: flex; font-size: 12px; font-weight: 700; justify-content: space-between; }
 .category-score small { color: var(--muted); font-size: 10px; }
 .category-score .metric-bar { margin-top: 12px; }
-.auth-shell { align-items: center; display: flex; justify-content: center; min-height: 100vh; padding: 30px 16px; }
+.auth-shell { align-items: center; display: flex; flex-direction: column; justify-content: center; min-height: 100vh; padding: 30px 16px; }
 .auth-card { background: var(--paper); border: 1px solid var(--line); border-radius: 22px; box-shadow: var(--shadow); max-width: 460px; padding: 34px; width: 100%; }
 .auth-card .brand { margin-bottom: 58px; }
 .auth-card h1 { font-size: 42px; letter-spacing: -.06em; margin: 15px 0 10px; }
 .auth-card > p { font-size: 13px; line-height: 1.6; margin-bottom: 29px; }
 .auth-card form .button { width: 100%; }
+.auth-shell .site-footer { border-top: 0; margin-top: 16px; padding: 12px 0 0; width: min(460px, 100%); }
+.auth-shell .site-footer-inner { align-items: center; flex-direction: column; gap: 10px; }
+.auth-shell .site-footer-brand { display: none; }
+.auth-shell .site-footer-copy { flex-direction: column; gap: 4px; text-align: center; }
 
 @media (max-width: 900px) {
   .hero-grid, .assessment-landing-grid, .result-grid { gap: 42px; grid-template-columns: 1fr; }
