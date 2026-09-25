@@ -4,12 +4,11 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Absolute Mind — Personalised check-ins",
   description: "Thoughtful assessments and personalised next steps from Absolute Mind.",
-  icons: { icon: "/icon.svg" }
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang="en-GB">
       <body>{children}</body>
     </html>
   );

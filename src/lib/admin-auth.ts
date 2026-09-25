@@ -1,9 +1,10 @@
+import { createHash, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 export const ADMIN_COOKIE = "absolute_mind_admin_session";
 
-function configuredAdminEmails() {
+export function configuredAdminEmails() {
   return Array.from(new Set([
     process.env.ADMIN_EMAIL,
     ...(process.env.ADMIN_ADDITIONAL_EMAILS ?? "").split(","),
@@ -19,10 +20,16 @@ export function isConfiguredAdminEmail(email: string) {
   return configuredAdminEmails().includes(email.trim().toLowerCase());
 }
 
+/** Constant-time comparison so response timing does not reveal how much of a secret matched. */
+export function safeEqual(a: string, b: string) {
+  const digest = (value: string) => createHash("sha256").update(value).digest();
+  return timingSafeEqual(digest(a), digest(b));
+}
+
 export function authenticateAdmin(email: string, password: string) {
-  return adminAuthConfigured()
-    && isConfiguredAdminEmail(email)
-    && password === process.env.ADMIN_PASSWORD;
+  if (!adminAuthConfigured()) return false;
+  const passwordMatches = safeEqual(password, process.env.ADMIN_PASSWORD ?? "");
+  return isConfiguredAdminEmail(email) && passwordMatches;
 }
 
 function toBase64Url(value: Uint8Array) {
@@ -53,7 +60,13 @@ export async function verifyAdminSession(token?: string) {
   const [email, expiresAt] = payload.split("|");
   if (!email || !isConfiguredAdminEmail(email) || Number(expiresAt) < Date.now()) return false;
   const expected = await sign(payload);
-  return expected === signature;
+  return safeEqual(expected, signature);
+}
+
+export async function isAdminRequest() {
+  if (!adminAuthConfigured()) return false;
+  const cookieStore = await cookies();
+  return verifyAdminSession(cookieStore.get(ADMIN_COOKIE)?.value);
 }
 
 export async function requireAdmin() {

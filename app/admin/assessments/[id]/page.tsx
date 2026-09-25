@@ -3,6 +3,8 @@ import { NewAssessmentForm } from "@/src/components/new-assessment-form";
 import { getAdminAssessment } from "@/src/lib/assessment-repository";
 import { requireAdmin } from "@/src/lib/admin-auth";
 
+export const dynamic = "force-dynamic";
+
 export default async function EditAssessmentPage({ params }: { params: Promise<{ id: string }> }) {
   await requireAdmin();
   const { id } = await params;
