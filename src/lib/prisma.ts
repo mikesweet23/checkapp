@@ -6,8 +6,10 @@ type PrismaModel = {
   create(args: object): Promise<any>;
   createMany(args: object): Promise<any>;
   update(args: object): Promise<any>;
+  delete(args: object): Promise<any>;
   deleteMany(args: object): Promise<any>;
   updateMany?(args: object): Promise<any>;
+  count(args?: object): Promise<number>;
 };
 
 type PrismaClientLike = {
@@ -21,6 +23,7 @@ type PrismaClientLike = {
   question: PrismaModel;
   scoreCategory: PrismaModel;
   assessmentSection: PrismaModel;
+  answerOption: PrismaModel;
   $transaction<T>(callback: (transaction: PrismaClientLike) => Promise<T>): Promise<T>;
 };
 

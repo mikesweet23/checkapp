@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { requireAdmin } from "@/src/lib/admin-auth";
+import { isAdminRequest } from "@/src/lib/admin-auth";
+import { bandCoverageIssues } from "@/src/lib/scoring";
 import { saveAssessmentDraft } from "@/src/lib/assessment-repository";
 import type { AssessmentDraft } from "@/src/lib/types";
 
@@ -20,11 +21,15 @@ function validDraft(value: unknown): value is AssessmentDraft {
 }
 
 export async function POST(request: Request) {
-  await requireAdmin();
+  if (!await isAdminRequest()) return NextResponse.json({ error: "Your session has expired. Please sign in again." }, { status: 401 });
   const body = await request.json().catch(() => null);
   if (!validDraft(body)) return NextResponse.json({ error: "Please complete the assessment basics before saving." }, { status: 400 });
   if (body.status === "LIVE" && (!body.questions.length || !body.resultBands.length)) {
     return NextResponse.json({ error: "Add at least one question and one result band before publishing." }, { status: 400 });
+  }
+  const bandIssues = bandCoverageIssues(body.resultBands.map((band) => ({ ...band, minScore: Number(band.minScore), maxScore: Number(band.maxScore) })));
+  if (body.status === "LIVE" && bandIssues.length) {
+    return NextResponse.json({ error: `Please fix the result bands before publishing: ${bandIssues.join(" ")}` }, { status: 400 });
   }
   try {
     const assessment = await saveAssessmentDraft({ ...body, completionMinutes: Number(body.completionMinutes) || 3 });

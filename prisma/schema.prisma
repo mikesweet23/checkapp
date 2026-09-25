@@ -47,26 +47,28 @@ model Assessment {
   videos       Video[]
   pdfTemplates PdfReportTemplate[]
   attempts     AssessmentAttempt[]
+
   @@unique([workspaceId, slug])
 }
 
 model AssessmentSection {
-  id           String      @id @default(cuid())
+  id           String     @id @default(cuid())
   assessmentId String
   title        String
   description  String?
-  sortOrder    Int         @default(0)
-  assessment   Assessment  @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  sortOrder    Int        @default(0)
+  assessment   Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
   questions    Question[]
 }
 
 model ScoreCategory {
-  id           String            @id @default(cuid())
+  id           String         @id @default(cuid())
   assessmentId String
   name         String
   description  String?
   color        String?
-  assessment   Assessment        @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  content      Json?
+  assessment   Assessment     @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
   questions    Question[]
   scores       AttemptScore[]
 }
@@ -141,17 +143,20 @@ model PdfReportTemplate {
 }
 
 model Contact {
-  id          String              @id @default(cuid())
-  workspaceId String
-  email       String
-  firstName   String?
-  lastName    String?
-  consent     Boolean             @default(false)
-  metadata    Json?
-  workspace   Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  attempts    AssessmentAttempt[]
-  crmLink     CrmLinkage?
-  createdAt   DateTime            @default(now())
+  id              String              @id @default(cuid())
+  workspaceId     String
+  email           String
+  firstName       String?
+  lastName        String?
+  consent         Boolean             @default(false)
+  followUpConsent Boolean             @default(false)
+  consentedAt     DateTime?
+  metadata        Json?
+  workspace       Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  attempts        AssessmentAttempt[]
+  crmLink         CrmLinkage?
+  createdAt       DateTime            @default(now())
+
   @@unique([workspaceId, email])
 }
 
@@ -160,6 +165,7 @@ model AssessmentAttempt {
   assessmentId String
   contactId    String?
   status       String          @default("STARTED")
+  publicToken  String?         @unique
   overallScore Int?
   resultBandId String?
   startedAt    DateTime        @default(now())
@@ -169,6 +175,8 @@ model AssessmentAttempt {
   answers      AttemptAnswer[]
   scores       AttemptScore[]
   emailEvents  EmailEvent[]
+
+  @@index([contactId, assessmentId, completedAt])
 }
 
 model AttemptAnswer {
@@ -181,6 +189,7 @@ model AttemptAnswer {
   attempt    AssessmentAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
   question   Question          @relation(fields: [questionId], references: [id], onDelete: Cascade)
   option     AnswerOption?     @relation(fields: [optionId], references: [id], onDelete: SetNull)
+
   @@unique([attemptId, questionId])
 }
 
@@ -191,6 +200,7 @@ model AttemptScore {
   score      Int
   attempt    AssessmentAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
   category   ScoreCategory     @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
   @@unique([attemptId, categoryId])
 }
 
@@ -206,11 +216,11 @@ model EmailEvent {
 }
 
 model CrmLinkage {
-  id         String   @id @default(cuid())
-  contactId  String   @unique
+  id         String    @id @default(cuid())
+  contactId  String    @unique
   provider   String
   externalId String
   metadata   Json?
   syncedAt   DateTime?
-  contact    Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  contact    Contact   @relation(fields: [contactId], references: [id], onDelete: Cascade)
 }
